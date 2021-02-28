@@ -44,6 +44,12 @@
       - docker-ce
     state: latest
 
+- name: Enable at boot and Start Docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
 - name: Disable firewalld service
   service:
     name: firewalld

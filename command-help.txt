@@ -1,0 +1,38 @@
+# Get nodes status
+kubectl get nodes
+
+# Get pod status
+kubectl get pod
+
+# Get services status
+kubectl get services
+
+# Create deployment of specific container / service from docker hub
+kubectl create deployment [deployment-name] --image=[container-name]
+kubectl create deployment nginx-depl --image=nignx
+
+# Get deployment status
+kubectl get deployment
+
+# Get the replica set
+kubectl get replicaset
+
+# Edit the auto-generated config file having default values of the deployment
+kubectl edit deployment <deployment-name>
+
+kubectl edit deployment nginx-depl
+
+# Pod / container debugging
+# Check the logs of a pod
+kubectl logs nginx-depl-234dw344d234-fdexx
+
+# Get detail information about pod
+kubectl describe pod [pod-name]
+
+# Enter pod / container with interactive shell for debugging
+kubectl exec -it [pod-name] -- /bin/bash
+
+# Remove deployment
+kubectl delete deployment [deployment-name]
+kubectl delete deployment nginx-depl
+

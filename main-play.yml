@@ -1,0 +1,22 @@
+---
+- hosts: all
+  become: true
+  roles:
+    - base
+
+  handlers:
+    - name: reload-firewall
+      service:
+        name: firewalld
+        state: restarted
+
+- hosts: master
+  become: true
+  roles:
+    - k8s-master
+
+- hosts: nodes
+  become: true
+  roles:
+    - k8s-nodes
+

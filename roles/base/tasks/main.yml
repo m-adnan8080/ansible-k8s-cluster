@@ -1,0 +1,92 @@
+---
+
+- name: Add the inventory into /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '.*{{ item }}$'
+    line: "{% set short_name = item.split('.') %}{{ hostvars[item]['ansible_facts']['eth1']['ipv4']['address'] }} {{item}} {{ short_name[0] }}"
+    state: present
+  with_items:
+    - "{{ groups['all'] }}"
+  when: hostvars[item]['ansible_facts']['eth1']['ipv4']['address'] is defined
+
+- name: Install yum-utils and tools
+  package:
+    name:
+      - yum-utils
+      - wget
+      - nano
+      - net-tools
+    state: latest
+
+- name: Add Docker repo
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docer-ce.repo
+
+- name: Add kubernates repo
+  blockinfile:
+    path: /etc/yum.repos.d/kubernetes.repo
+    create: yes
+    block: |
+      [kubernetes]
+      name=Kubernetes
+      baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+      enabled=1
+      gpgcheck=0
+      repo_gpgcheck=1
+      gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
+
+- name: Install latest Docker-CE, kubernetes and tools
+  package:
+    name:
+      - kubeadm
+      - docker-ce
+    state: latest
+
+- name: Enable at boot and Start Docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Enable at boot and Start Kubernetes service
+  service:
+    name: kubelet
+    state: started
+    enabled: yes
+
+- name: Add user vagrant to docker group
+  user:
+    name: vagrant
+    groups: docker
+    append: yes
+
+- name: Firewalld config
+  firewalld:
+    state: enabled
+    port: "{{ item }}"
+    permanent: yes
+  notify: reload-firewall
+  loop:
+    - "6443/tcp"
+    - "2379-2380/tcp"
+    - "10250-10252/tcp"
+    - "10255/tcp"
+
+- name: Flush handler
+  meta: flush_handlers
+
+- name: Remove swapfile from /etc/fstab
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  with_items:
+    - swap
+    - none
+
+- name: Disable swap
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+

@@ -23,7 +23,7 @@ Vagrant.configure("2") do |config|
         override.vm.network :private_network, ip: "#{info[:ip]}"
         override.vm.hostname = hostname + ".test"
         vb.name = hostname
-        vb.customize ["modifyvm", :id, "--memory", info[:mem], "--cpus", info[:cpu]]
+        vb.customize ["modifyvm", :id, "--memory", info[:mem], "--cpus", info[:cpu], "--hwvirtex", "on"]
       end # end provider
     end # end config
   end # end cluster

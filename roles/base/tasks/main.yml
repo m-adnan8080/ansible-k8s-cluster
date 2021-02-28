@@ -44,11 +44,11 @@
       - docker-ce
     state: latest
 
-- name: Enable at boot and Start Docker service
+- name: Disable firewalld service
   service:
-    name: docker
-    state: started
-    enabled: yes
+    name: firewalld
+    state: stopped
+    enabled: no
 
 - name: Enable at boot and Start Kubernetes service
   service:
@@ -62,20 +62,20 @@
     groups: docker
     append: yes
 
-- name: Firewalld config
-  firewalld:
-    state: enabled
-    port: "{{ item }}"
-    permanent: yes
-  notify: reload-firewall
-  loop:
-    - "6443/tcp"
-    - "2379-2380/tcp"
-    - "10250-10252/tcp"
-    - "10255/tcp"
+# - name: Firewalld config
+#   firewalld:
+#     state: enabled
+#     port: "{{ item }}"
+#     permanent: yes
+#   notify: reload-firewall
+#   loop:
+#     - "6443/tcp"
+#     - "2379-2380/tcp"
+#     - "10250-10252/tcp"
+#     - "10255/tcp"
 
-- name: Flush handler
-  meta: flush_handlers
+# - name: Flush handler
+#   meta: flush_handlers
 
 - name: Remove swapfile from /etc/fstab
   mount:

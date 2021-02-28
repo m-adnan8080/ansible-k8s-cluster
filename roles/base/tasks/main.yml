@@ -17,7 +17,6 @@
       - wget
       - nano
       - net-tools
-      - htop
     state: latest
 
 - name: Add Docker repo

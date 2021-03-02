@@ -66,6 +66,19 @@
   command: swapoff -a
   when: ansible_swaptotal_mb > 0
 
+- name: Enable Kubernetes birdge networking
+  blockinfile:
+    path: /etc/sysctl.d/kubernetes.conf
+    create: yes
+    block: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+  register: sysctl-config
+
+- name: Apply sysctl config
+  shell: sysctl --system
+  when: sysctl-config.changed
+
 - name: Enable at boot and Start Docker service
   service:
     name: docker

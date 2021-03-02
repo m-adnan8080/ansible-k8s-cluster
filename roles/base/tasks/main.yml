@@ -44,23 +44,11 @@
       - docker-ce
     state: latest
 
-- name: Enable at boot and Start Docker service
-  service:
-    name: docker
-    state: started
-    enabled: yes
-
 - name: Disable firewalld service
   service:
     name: firewalld
     state: stopped
     enabled: no
-
-- name: Enable at boot and Start Kubernetes service
-  service:
-    name: kubelet
-    state: started
-    enabled: yes
 
 - name: Add user vagrant to docker group
   user:
@@ -68,31 +56,24 @@
     groups: docker
     append: yes
 
-# - name: Firewalld config
-#   firewalld:
-#     state: enabled
-#     port: "{{ item }}"
-#     permanent: yes
-#   notify: reload-firewall
-#   loop:
-#     - "6443/tcp"
-#     - "2379-2380/tcp"
-#     - "10250-10252/tcp"
-#     - "10255/tcp"
-
-# - name: Flush handler
-#   meta: flush_handlers
-
 - name: Remove swapfile from /etc/fstab
   mount:
-    name: "{{ item }}"
+    name: swap
     fstype: swap
     state: absent
-  with_items:
-    - swap
-    - none
 
 - name: Disable swap
   command: swapoff -a
   when: ansible_swaptotal_mb > 0
 
+- name: Enable at boot and Start Docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Enable at boot and Start Kubernetes service
+  service:
+    name: kubelet
+    state: started
+    enabled: yes

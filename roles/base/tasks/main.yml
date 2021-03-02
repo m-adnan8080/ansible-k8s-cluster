@@ -73,11 +73,11 @@
     block: |
       net.bridge.bridge-nf-call-ip6tables = 1
       net.bridge.bridge-nf-call-iptables = 1
-  register: sysctl-config
+  register: sysctl_result
 
 - name: Apply sysctl config
   shell: sysctl --system
-  when: sysctl-config.changed
+  when: sysctl_result.changed
 
 - name: Enable at boot and Start Docker service
   service:

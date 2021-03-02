@@ -9,17 +9,16 @@ cluster = {
 
 Vagrant.configure("2") do |config|
 
-  cluster.each_with_index do |(hostname, info), index|
+  config.vm.box = "centos/8"
+  config.vm.provision "file", source: "~/.ssh/id_ed25519.pub", destination: "/home/vagrant/id_ed25519.pub"
+  config.vm.provision "shell", inline: <<-SHELL
+    cat /home/vagrant/id_ed25519.pub >> /home/vagrant/.ssh/authorized_keys
+    rm /home/vagrant/id_ed25519.pub
+  SHELL
 
+  cluster.each_with_index do |(hostname, info), index|
     config.vm.define hostname do |cfg|
       cfg.vm.provider :virtualbox do |vb, override|
-        override.vm.box = "centos/8"
-        # override.vm.cpus = 2
-        override.vm.provision "file", source: "~/.ssh/id_ed25519.pub", destination: "/home/vagrant/id_ed25519.pub"
-        override.vm.provision "shell", inline: <<-SHELL
-          cat /home/vagrant/id_ed25519.pub >> /home/vagrant/.ssh/authorized_keys
-          rm /home/vagrant/id_ed25519.pub
-        SHELL
         override.vm.network :private_network, ip: "#{info[:ip]}"
         override.vm.hostname = hostname + ".test"
         vb.name = hostname

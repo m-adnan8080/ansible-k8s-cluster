@@ -2,9 +2,9 @@
 # vi: set ft=ruby :
 
 cluster = {
-  "k8s-master" => { :ip => "192.168.100.11", :mem => 2048, :cpu => 2 },
-  "k8s-node1" => { :ip => "192.168.100.12", :mem => 1024, :cpu => 1 },
-  "k8s-node2" => { :ip => "192.168.100.13", :mem => 1024, :cpu => 1 }
+  "kmaster" => { :ip => "192.168.100.11", :mem => 2048, :cpu => 2 },
+  "knode1" => { :ip => "192.168.100.12", :mem => 1024, :cpu => 1 },
+  "knode2" => { :ip => "192.168.100.13", :mem => 1024, :cpu => 1 }
 }
 
 Vagrant.configure("2") do |config|

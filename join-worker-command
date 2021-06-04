@@ -1,0 +1,1 @@
+kubeadm join 192.168.100.11:6443 --token chomee.wiindbu4unepros3     --discovery-token-ca-cert-hash sha256:e458414c84a1859a375e3a6cf55e5770f54ef605dcdd7f765ab244d0aa57b69f 

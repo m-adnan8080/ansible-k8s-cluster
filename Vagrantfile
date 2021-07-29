@@ -9,7 +9,7 @@ cluster = {
 
 Vagrant.configure("2") do |config|
 
-  config.vm.box = "centos/8"
+  config.vm.box = "centos/7"
   config.vm.provision "file", source: "~/.ssh/id_ed25519.pub", destination: "/home/vagrant/id_ed25519.pub"
   config.vm.provision "shell", inline: <<-SHELL
     cat /home/vagrant/id_ed25519.pub >> /home/vagrant/.ssh/authorized_keys

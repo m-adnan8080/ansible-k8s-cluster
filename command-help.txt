@@ -1,6 +1,9 @@
 # Get nodes status
 kubectl get nodes
 
+# Label nodes
+kubectl label node worker1 node-role.kubernetes.io/worker=worker
+
 # Get pod status
 kubectl get pod
 
@@ -9,7 +12,7 @@ kubectl get services
 
 # Create deployment of specific container / service from docker hub
 kubectl create deployment [deployment-name] --image=[container-name]
-kubectl create deployment nginx-depl --image=nignx
+kubectl create deployment nginx-web --image=nignx
 
 # Get deployment status
 kubectl get deployment
@@ -19,12 +22,15 @@ kubectl get replicaset
 
 # Edit the auto-generated config file having default values of the deployment
 kubectl edit deployment <deployment-name>
-
-kubectl edit deployment nginx-depl
+kubectl edit deployment nginx-web
 
 # Pod / container debugging
 # Check the logs of a pod
-kubectl logs nginx-depl-234dw344d234-fdexx
+kubectl logs nginx-web-234dw344d234-fdexx
+
+# Get status of pods short details and log details
+kubectl get pods label=nginx-web
+kubectl get pods label=nginx-web -o wide
 
 # Get detail information about pod
 kubectl describe pod [pod-name]
@@ -32,7 +38,60 @@ kubectl describe pod [pod-name]
 # Enter pod / container with interactive shell for debugging
 kubectl exec -it [pod-name] -- /bin/bash
 
-# Remove deployment
+# Access deployment pad from outside kubernetes
+# Create service to use nodes port for access
+kubectl create service nodeport nginx-service --tcp=80:80
+
+# Get status of service
+kubectl get service <service-name>
+kubectl get service nginx-service
+
+# To veiw or save running deployment or service in yaml format
+kubectl get deploy <deployment-name> -o yaml
+kubectl get service <deployment-name> -o yaml
+kubectl get deploy <deployment-name> -o yaml > deployment.yaml
+kubectl get service <deployment-name> -o yaml > service.yaml
+
+# Remove deployment or service
 kubectl delete deployment [deployment-name]
-kubectl delete deployment nginx-depl
+kubectl delete deployment nginx-web
+kubectl delete service [service-name]
+kubectl delete service nginx-service
+
+# Create or delete deployment/service from yaml file
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+kubectl delete -f deployment.yaml
+kubectl delete -f service.yaml
+
+# YAML file syntax, consists of mainly three portions
+# while first two lines what you want to create
+# 1. Metadata
+# 2. Specification
+# 3. Status
+
+# Sample YAML file
+---
+apiVersion: apps/v1
+kind: Deployment / Service / ConfigMap / Secret
+metadata:
+  name: nginx
+  label: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:tag
+        ports:
+        - containerPort: 80
+
+status: {}
 

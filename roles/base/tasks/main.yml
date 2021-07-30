@@ -50,6 +50,10 @@
     state: stopped
     enabled: no
 
+- name: Disable SELinux
+  selinux:
+    state: disabled
+
 - name: Add user vagrant to docker group
   user:
     name: vagrant

@@ -1,11 +1,11 @@
 [k8s]
-kmaster.test ansible_host=192.168.100.11
-knode1.test ansible_host=192.168.100.12
-knode2.test ansible_host=192.168.100.13
+kmaster.test ansible_host=192.168.122.11
+knode1.test ansible_host=192.168.122.12
+knode2.test ansible_host=192.168.122.13
 
 [master]
-kmaster.test ansible_host=192.168.100.11
+kmaster.test ansible_host=192.168.122.11
 
 [nodes]
-knode1.test ansible_host=192.168.100.12
-knode2.test ansible_host=192.168.100.13
+knode1.test ansible_host=192.168.122.12
+knode2.test ansible_host=192.168.122.13

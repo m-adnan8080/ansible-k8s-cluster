@@ -3,7 +3,7 @@
 - name: Configure master node ip
   lineinfile:
     path: /etc/default/kubelet
-    line: KUBELET_EXTRA_ARGS="--node-ip={{ ansible_facts['eth1']['ipv4']['address'] }}"
+    line: KUBELET_EXTRA_ARGS="--node-ip={{ ansible_facts['eth0']['ipv4']['address'] }}"
     create: yes
 
 - name: Restart kubelet
@@ -18,8 +18,8 @@
 #   register: k8s-cluster-stat
 
 - name: Initialize the Kubernetes cluster using kubeadm
-  command: kubeadm init --apiserver-advertise-address={{ ansible_facts['eth1']['ipv4']['address'] }} \
-           --apiserver-cert-extra-sans={{ ansible_facts['eth1']['ipv4']['address'] }}  \
+  command: kubeadm init --apiserver-advertise-address={{ ansible_facts['eth0']['ipv4']['address'] }} \
+           --apiserver-cert-extra-sans={{ ansible_facts['eth0']['ipv4']['address'] }}  \
            --node-name {{ ansible_facts['nodename'] }} --pod-network-cidr=192.168.0.0/16
   # when: not k8s-cluster-stat
 

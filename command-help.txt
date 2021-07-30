@@ -12,7 +12,7 @@ kubectl get services
 
 # Create deployment of specific container / service from docker hub
 kubectl create deployment [deployment-name] --image=[container-name]
-kubectl create deployment nginx-web --image=nignx
+kubectl create deployment nginx-web --image=nginx:alpine
 
 # Get deployment status
 kubectl get deployment
@@ -92,6 +92,5 @@ spec:
         image: nginx:tag
         ports:
         - containerPort: 80
-
 status: {}
 

@@ -1,3 +1,5 @@
 .vagrant
 .vagrant/*
 join-worker-command
+join-master-command
+kubeconfig

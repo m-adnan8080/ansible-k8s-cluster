@@ -32,7 +32,7 @@
 
 - name: Install flannel pod network
   become: false
-  command: kubectl create -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  command: kubectl create -f https://docs.projectcalico.org/manifests/calico.yaml
 
 - name: Generate join command
   command: kubeadm token create --print-join-command

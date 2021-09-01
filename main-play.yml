@@ -15,7 +15,7 @@
   roles:
     - k8s-master
 
-- hosts: nodes
+- hosts: workers
   become: true
   roles:
     - k8s-nodes

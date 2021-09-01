@@ -50,6 +50,11 @@
     state: stopped
     enabled: no
 
+- name: Put SELinux in permissive mode.
+  selinux:
+    policy: targeted
+    state: permissive
+
 - name: Disable SELinux
   selinux:
     state: disabled
@@ -69,6 +74,14 @@
 - name: Disable swap
   command: swapoff -a
   when: ansible_swaptotal_mb > 0
+
+- name: Create /etc/docker directory
+  file:
+    path: /etc/docker
+    state: directory
+
+- name: Update the docker driver to systemd
+  copy: src=daemon.json dest=/etc/docker/daemon.json
 
 - name: Enable Kubernetes birdge networking
   blockinfile:

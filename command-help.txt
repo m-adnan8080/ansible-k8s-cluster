@@ -64,9 +64,11 @@ kubectl apply -f service.yaml
 kubectl delete -f deployment.yaml
 kubectl delete -f service.yaml
 
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
-kubectl proxy --address 0.0.0.0 --accept-hosts '.*'
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml --dry-run=client -o yaml > dashboard-deploy.yaml
 
+kubectl apply -f dashboard-deploy.yaml
+
+# Create service account and cluster role binding to access dashbaord
 # nano dashboard-user.yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -87,12 +89,35 @@ subjects:
   name: admin-user
   namespace: kubernetes-dashboard
 
-  # Get token
-  kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa/admin-user -o jsonpath="{.secrets[0].name}") -o go-template="{{.data.token | base64decode}}"
+kubectl apply -f dashboard-user.yaml
+
+# Get token
+kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa/admin-user -o jsonpath="{.secrets[0].name}") -o go-template="{{.data.token | base64decode}}"; echo ""
+
+# Proxy kubernetes dashboard
+kubectl proxy --address 0.0.0.0 --accept-hosts '.*' &
+
+=====================
+# If facing issue access the dashboard then you need to create p12 certifacte file from crt and key files from kubeconfig. Then import p12 certificate file to local browser.
+
+### kubecfg.crt
+grep 'client-certificate-data' ~/.kube/config | head -n 1 | awk '{print $2}' | base64 -d &gt&gt kubecfg.crt
+
+### kubecfg.key
+grep 'client-key-data' ~/.kube/config | head -n 1 | awk '{print $2}' | base64 -d &gt kubecfg.key
+
+### kubecfg.p12
+openssl pkcs12 -export -clcerts -inkey kubecfg.key -in kubecfg.crt -out kubecfg.p12 -name "kubernetes-client"
+=====================
 
 # Access dashboard from URL
 http://server-ip:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
 
+# Create secret for treescale.com docker repo
+kubectl create secret docker-registry regcred --docker-server='https://repo.treescale.com' --docker-username='adnan80' --docker-password='ea1efc7a03d1443f9a1f4d15897eca6d' --docker-email='m.adnan80@gmail.com'
+
+# or using docker config.json file
+kubectl create secret docker-registry regcred --from-file=".dockerconfigjson=/home/khanaadn/.docker/config.json"
 
 # YAML file syntax, consists of mainly three portions
 # while first two lines what you want to create
@@ -100,10 +125,34 @@ http://server-ip:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kube
 # 2. Specification
 # 3. Status
 
-# Sample YAML file
+# Sample YAML file to create Deployment
 ---
 apiVersion: apps/v1
-kind: Deployment / Service / ConfigMap / Secret
+kind: Deployment
+metadata:
+  name: nginx
+  label: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:tag
+        ports:
+        - containerPort: 80
+status: {}
+
+# Sample YAML file to create Service
+---
+apiVersion: apps/v1
+kind: Service
 metadata:
   name: nginx
   label: nginx

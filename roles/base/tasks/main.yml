@@ -55,10 +55,6 @@
     policy: targeted
     state: permissive
 
-- name: Disable SELinux
-  selinux:
-    state: disabled
-
 - name: Add user vagrant to docker group
   user:
     name: vagrant

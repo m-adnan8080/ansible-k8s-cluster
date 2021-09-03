@@ -13,28 +13,57 @@
     state: restarted
     enabled: yes
 
-# - name: Get kubernetes cluster info if exists
-#   kubernetes.k8s_cluster_info:
-#   register: k8s-cluster-stat
+- name: Check kubernetes cluster already exists
+  stat:
+    path: "/etc/kubernetes/admin.conf"
+  register: k8s_cluster_stat
 
 - name: Initialize the Kubernetes cluster using kubeadm
   command: kubeadm init --apiserver-advertise-address={{ ansible_facts['eth0']['ipv4']['address'] }} \
            --apiserver-cert-extra-sans={{ ansible_facts['eth0']['ipv4']['address'] }}  \
            --node-name {{ ansible_facts['nodename'] }} --pod-network-cidr=192.168.0.0/16
-  # when: not k8s-cluster-stat
+  when: k8s_cluster_stat.stat.exists == False
 
 - name: Setup kubeconfig for vagrant user
   command: "{{ item }}"
   with_items:
    - mkdir -p /home/vagrant/.kube
-   - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+   - cp /etc/kubernetes/admin.conf /home/vagrant/.kube/config
    - chown -R vagrant:vagrant /home/vagrant/.kube
+  args:
+    warn: false
 
-- name: Install flannel pod network
+- name: Copy kubeconfig to local system
+  fetch:
+    src: "/etc/kubernetes/admin.conf"
+    dest: "./kubeconfig"
+    flat: yes
+
+- name: check calico pods network status
+  shell: "kubectl get pods -A | grep calico-node | wc -l"
+  register: calico_status
+  ignore_errors: yes
+
+- name: print calico_status
+  debug:
+    var: calico_status
+
+- name: Install calico pods network
   become: false
   command: kubectl create -f https://docs.projectcalico.org/manifests/calico.yaml
+  when: calico_status.stdout == "0"
 
-- name: Generate join command
+# - name: check flanel pods network status
+#   shell: "kubectl get pods -A | grep fannel | wc -l"
+#   register: flannel_status
+#   ignore_errors: yes
+
+# - name: Install flannel pods network
+#   become: false
+#   command: kubectl create -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+#   when: flannel_status.stdout == "0"
+
+- name: Generate join command for worker nodes
   command: kubeadm token create --print-join-command
   become: false
   register: join_command
@@ -42,3 +71,18 @@
 - name: Copy join command to local file
   local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-worker-command"
   become: false
+
+- name: Generate cert for joining more master nodes
+  shell: "kubeadm init phase upload-certs --upload-certs | awk 'NR==3'"
+  become: false
+  register: join_cert
+
+- name: Generate join command for master nodes
+  command: kubeadm token create --certificate-key "{{ join_cert.stdout }}" --print-join-command
+  become: false
+  register: join_master_command
+
+- name: Copy join command to local file
+  local_action: copy content="{{ join_master_command.stdout_lines[0] }}" dest="./join-master-command"
+  become: false
+

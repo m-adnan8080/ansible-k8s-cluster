@@ -44,9 +44,9 @@
   register: calico_status
   ignore_errors: yes
 
-- name: print calico_status
-  debug:
-    var: calico_status
+# - name: print calico_status
+#   debug:
+#     var: calico_status
 
 - name: Install calico pods network
   become: false

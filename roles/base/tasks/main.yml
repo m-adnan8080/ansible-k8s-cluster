@@ -42,14 +42,22 @@
     name:
       - kubeadm
       - docker-ce
-      - iproute-tc
+      - iproute
     state: latest
 
-- name: Disable firewalld service
-  service:
-    name: firewalld
-    state: stopped
-    enabled: no
+- name: firewalld configuration
+  firewalld:
+    zone: public
+    port: "{{ item }}"
+    permanent: yes
+    state: enabled
+  notify: reload firewalld
+  loop:
+    - 6443/tcp
+    - 2379-2380/tcp
+    - 10250-10252/tcp
+    - 10255/tcp
+- meta: flush_handlers
 
 - name: Put SELinux in permissive mode.
   selinux:

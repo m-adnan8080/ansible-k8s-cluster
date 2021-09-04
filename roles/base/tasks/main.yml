@@ -42,6 +42,7 @@
     name:
       - kubeadm
       - docker-ce
+      - iproute-tc
     state: latest
 
 - name: Disable firewalld service

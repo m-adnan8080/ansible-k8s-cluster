@@ -51,12 +51,13 @@
     port: "{{ item }}"
     permanent: yes
     state: enabled
-  notify: reload firewalld
   loop:
     - 6443/tcp
     - 2379-2380/tcp
     - 10250-10252/tcp
     - 10255/tcp
+  notify: reload firewalld
+
 - meta: flush_handlers
 
 - name: Put SELinux in permissive mode.
@@ -86,7 +87,18 @@
     state: directory
 
 - name: Update the docker driver to systemd
-  copy: src=daemon.json dest=/etc/docker/daemon.json
+  copy:
+    dest: "/etc/docker/daemon.json"
+    content: '{
+                "exec-opts": ["native.cgroupdriver=systemd"],
+                "log-driver": "json-file",
+                "log-opts": {
+                  "max-size": "100m"
+                },
+                "storage-driver": "overlay2"
+              }'
+    mode: 0644
+  # copy: src=daemon.json dest=/etc/docker/daemon.json
 
 - name: Enable Kubernetes birdge networking
   blockinfile:

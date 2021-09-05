@@ -4,19 +4,18 @@
   lineinfile:
     dest: /etc/hosts
     regexp: '.*{{ item }}$'
-    line: "{% set short_name = item.split('.') %}{{ hostvars[item]['ansible_facts']['eth0']['ipv4']['address'] }} {{item}} {{ short_name[0] }}"
+    line: "{% set short_name = item.split('.') %}{{ hostvars[item]['ansible_facts']['eth1']['ipv4']['address'] }} {{item}} {{ short_name[0] }}"
     state: present
   with_items:
     - "{{ groups['all'] }}"
-  when: hostvars[item]['ansible_facts']['eth0']['ipv4']['address'] is defined
+  when: hostvars[item]['ansible_facts']['eth1']['ipv4']['address'] is defined
 
-- name: Install basic tools
+- name: Install iproute on RedHat Family OS
   package:
     name:
-      - wget
-      - nano
-      - net-tools
+      - iproute
     state: latest
+  when: ansible_os_family == 'RedHat'
 
 - name: Install dependency on Debian Family OS
   package:
@@ -30,15 +29,19 @@
     update_cache: yes
   when: ansible_os_family == 'Debian'
 
-- name: Add docker GPG key on Debian Family OS
+- name: Add docker and kubernetes GPG keys on Debian Family OS
   apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
+    url:
+      - https://download.docker.com/linux/ubuntu/gpg
+      - https://packages.cloud.google.com/apt/doc/apt-key.gpg
     state: present
   when: ansible_os_family == 'Debian'
 
-- name: Add docker repository on Debian Family OS
+- name: Add docker and kubernetes repositories on Debian Family OS
   apt_repository:
-    repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    repo:
+      - deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+      - deb http://apt.kubernetes.io/ kubernetes-{{ ansible_distribution_release }} main
     state: present
   when: ansible_os_family == 'Debian'
 
@@ -47,18 +50,6 @@
     url: https://download.docker.com/linux/centos/docker-ce.repo
     dest: /etc/yum.repos.d/docer-ce.repo
   when: ansible_os_family == 'RedHat'
-
-- name: Add Kubernetes GPG key to Debian Family OS
-  apt_key:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    state: present
-  when: ansible_os_family == 'Debian'
-
-- name: Add Kubernetes repository to Debian Family OS
-  apt_repository:
-    repo: deb http://apt.kubernetes.io/ kubernetes-{{ ansible_distribution_release }} main
-    state: present
-  when: ansible_os_family == 'Debian'
 
 - name: Add kubernates repo to Redhat Family OS
   blockinfile:
@@ -74,11 +65,6 @@
       gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
   when: ansible_os_family == 'RedHat'
 
-- name: Update cache on Debian Family OS
-  package:
-    update_cache: yes
-  when: ansible_os_family == 'Debian'
-
 - name: Install latest Docker-CE, kubernetes and tools
   package:
     name:
@@ -86,7 +72,6 @@
       - kubectl
       - kubelet
       - docker-ce
-      - iproute
     state: present
 
 - name: Firewalld configuration on RedHat Family OS
@@ -171,3 +156,31 @@
     name: kubelet
     state: started
     enabled: yes
+
+- name: Pull required docker images on kmaster(s) node
+  docker_image:
+    name:
+      - k8s.gcr.io/kube-apiserver:v1.22.1
+      - k8s.gcr.io/kube-scheduler:v1.22.1
+      - k8s.gcr.io/kube-proxy:v1.22.1
+      - k8s.gcr.io/kube-controller-manager:v1.22.1
+      - calico/node:v3.20.0
+      - calico/pod2daemon-flexvol:v3.20.0
+      - calico/cni:v3.20.0
+      - calico/kube-controllers:v3.20.0
+      - k8s.gcr.io/etcd:3.5.0-0
+      - k8s.gcr.io/coredns/coredns:v1.8.4
+      - k8s.gcr.io/pause:3.5
+    state: present
+  when: inventory_hostname in groups['master']
+
+- name: Pull required docker images on worker(s) node
+  docker_image:
+    name:
+      - k8s.gcr.io/kube-proxy:v1.22.1
+      - calico/node:v3.20.0
+      - calico/pod2daemon-flexvol:v3.20.0
+      - calico/cni:v3.20.0
+      - k8s.gcr.io/pause:3.5
+    state: present
+  when: inventory_hostname in groups['workers']

@@ -1,11 +1,11 @@
 [k8s]
-kmaster.local.test ansible_host=192.168.122.11
-worker1.local.test ansible_host=192.168.122.12
-worker2.local.test ansible_host=192.168.122.13
+kmaster.local.test ansible_host=192.168.100.11
+worker1.local.test ansible_host=192.168.100.12
+worker2.local.test ansible_host=192.168.100.13
 
 [master]
-kmaster.local.test ansible_host=192.168.122.11
+kmaster.local.test ansible_host=192.168.100.11
 
 [workers]
-worker1.local.test ansible_host=192.168.122.12
-worker2.local.test ansible_host=192.168.122.13
+worker1.local.test ansible_host=192.168.100.12
+worker2.local.test ansible_host=192.168.100.13

@@ -5,3 +5,7 @@
 
 - name: Join the node to cluster
   command: sh /tmp/join-worker-command.sh
+
+- name: Flushing IP tables
+  iptables:
+    flush: yes

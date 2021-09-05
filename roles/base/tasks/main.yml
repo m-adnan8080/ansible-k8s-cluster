@@ -10,21 +10,57 @@
     - "{{ groups['all'] }}"
   when: hostvars[item]['ansible_facts']['eth0']['ipv4']['address'] is defined
 
-- name: Install yum-utils and tools
+- name: Install basic tools
   package:
     name:
-      - yum-utils
       - wget
       - nano
       - net-tools
     state: latest
 
-- name: Add Docker repo
+- name: Install dependency on Debian Family OS
+  package:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Add docker GPG key on Debian Family OS
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Add docker repository on Debian Family OS
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Add Docker repo to Redhat Family OS
   get_url:
     url: https://download.docker.com/linux/centos/docker-ce.repo
     dest: /etc/yum.repos.d/docer-ce.repo
+  when: ansible_os_family == 'RedHat'
 
-- name: Add kubernates repo
+- name: Add Kubernetes GPG key to Debian Family OS
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Add Kubernetes repository to Debian Family OS
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-{{ ansible_distribution_release }} main
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Add kubernates repo to Redhat Family OS
   blockinfile:
     path: /etc/yum.repos.d/kubernetes.repo
     create: yes
@@ -36,16 +72,24 @@
       gpgcheck=0
       repo_gpgcheck=1
       gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
+  when: ansible_os_family == 'RedHat'
+
+- name: Update cache on Debian Family OS
+  package:
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
 
 - name: Install latest Docker-CE, kubernetes and tools
   package:
     name:
       - kubeadm
+      - kubectl
+      - kubelet
       - docker-ce
       - iproute
-    state: latest
+    state: present
 
-- name: firewalld configuration
+- name: Firewalld configuration on RedHat Family OS
   firewalld:
     zone: public
     port: "{{ item }}"
@@ -57,13 +101,15 @@
     - 10250-10252/tcp
     - 10255/tcp
   notify: reload firewalld
+  when: ansible_os_family == 'RedHat'
 
 - meta: flush_handlers
 
-- name: Put SELinux in permissive mode.
+- name: Put SELinux in permissive mode on RedHat Family OS
   selinux:
     policy: targeted
     state: permissive
+  when: ansible_os_family == 'RedHat'
 
 - name: Add user vagrant to docker group
   user:
@@ -98,7 +144,7 @@
                 "storage-driver": "overlay2"
               }'
     mode: 0644
-  # copy: src=daemon.json dest=/etc/docker/daemon.json
+  register: docker_json_file_stat
 
 - name: Enable Kubernetes birdge networking
   blockinfile:

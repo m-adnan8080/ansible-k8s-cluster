@@ -12,6 +12,8 @@
     daemon_reload: yes
     state: restarted
     enabled: yes
+  when: docker_json_file_stat.changed == True
+
 
 - name: Check kubernetes cluster already exists
   stat:
@@ -46,7 +48,7 @@
 
 # - name: print calico_status
 #   debug:
-#     var: calico_status
+#     var: calico_status.stdout
 
 - name: Install calico pods network
   become: false
@@ -57,6 +59,10 @@
 #   shell: "kubectl get pods -A | grep fannel | wc -l"
 #   register: flannel_status
 #   ignore_errors: yes
+
+# - name: print flannel_status
+#   debug:
+#     var: flannel_status.stdout
 
 # - name: Install flannel pods network
 #   become: false
@@ -86,3 +92,6 @@
   local_action: copy content="{{ join_master_command.stdout_lines[0] }}" dest="./join-master-command"
   become: false
 
+- name: Flushing IP tables
+  iptables:
+    flush: yes

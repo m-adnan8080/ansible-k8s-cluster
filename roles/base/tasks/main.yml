@@ -14,7 +14,7 @@
   package:
     name:
       - iproute
-    state: latest
+    state: present
   when: ansible_os_family == 'RedHat'
 
 - name: Install dependency on Debian Family OS

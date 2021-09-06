@@ -42,13 +42,9 @@
     flat: yes
 
 - name: check calico pods network status
-  shell: "kubectl get pods -A | grep calico-node | wc -l"
+  shell: export KUBECONFIG=/etc/kubernetes/admin.conf && kubectl get pods -A | grep calico-node | wc -l
   register: calico_status
   ignore_errors: yes
-
-# - name: print calico_status
-#   debug:
-#     var: calico_status.stdout
 
 - name: Install calico pods network
   become: false
@@ -56,7 +52,7 @@
   when: calico_status.stdout == "0"
 
 # - name: check flanel pods network status
-#   shell: "kubectl get pods -A | grep fannel | wc -l"
+#   shell: export KUBECONFIG=/etc/kubernetes/admin.conf && kubectl get pods -A | grep fannel | wc -l"
 #   register: flannel_status
 #   ignore_errors: yes
 

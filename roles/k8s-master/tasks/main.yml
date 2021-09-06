@@ -34,6 +34,7 @@
    - chown -R vagrant:vagrant /home/vagrant/.kube
   args:
     warn: false
+  changed_when: false
 
 - name: Copy kubeconfig to local system
   fetch:
@@ -45,6 +46,7 @@
   shell: export KUBECONFIG=/etc/kubernetes/admin.conf && kubectl get pods -A | grep calico-node | wc -l
   register: calico_status
   ignore_errors: yes
+  changed_when: false
 
 - name: Install calico pods network
   become: false
@@ -55,6 +57,7 @@
 #   shell: export KUBECONFIG=/etc/kubernetes/admin.conf && kubectl get pods -A | grep fannel | wc -l"
 #   register: flannel_status
 #   ignore_errors: yes
+#   changed_when: false
 
 # - name: print flannel_status
 #   debug:
@@ -69,25 +72,31 @@
   command: kubeadm token create --print-join-command
   become: false
   register: join_command
+  changed_when: false
 
 - name: Copy join command to local file
   local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-worker-command"
   become: false
+  changed_when: false
 
 - name: Generate cert for joining more master nodes
   shell: "kubeadm init phase upload-certs --upload-certs | awk 'NR==3'"
   become: false
   register: join_cert
+  changed_when: false
 
 - name: Generate join command for master nodes
   command: kubeadm token create --certificate-key "{{ join_cert.stdout }}" --print-join-command
   become: false
   register: join_master_command
+  changed_when: false
 
 - name: Copy join command to local file
   local_action: copy content="{{ join_master_command.stdout_lines[0] }}" dest="./join-master-command"
   become: false
+  changed_when: false
 
 - name: Flushing IP tables
   iptables:
     flush: yes
+  changed_when: false

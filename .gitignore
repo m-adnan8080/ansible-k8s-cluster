@@ -3,5 +3,5 @@
 join-worker-command
 join-master-command
 kubeconfig
-Vagrantfile
+Vagrantfile*
 test.yaml

@@ -3,7 +3,7 @@
 - name: Configure master node ip
   lineinfile:
     path: /etc/default/kubelet
-    line: KUBELET_EXTRA_ARGS="--node-ip={{ ansible_facts['eth1']['ipv4']['address'] }}"
+    line: KUBELET_EXTRA_ARGS="--node-ip={{ ansible_facts[ KUBELET_INTERFACE_NAME ]['ipv4']['address'] }}"
     create: yes
 
 - name: Restart kubelet
@@ -14,24 +14,23 @@
     enabled: yes
   when: docker_json_file_stat.changed == True
 
-
 - name: Check kubernetes cluster already exists
   stat:
     path: "/etc/kubernetes/admin.conf"
   register: k8s_cluster_stat
 
 - name: Initialize the Kubernetes cluster using kubeadm
-  command: kubeadm init --apiserver-advertise-address={{ ansible_facts['eth1']['ipv4']['address'] }} \
-           --apiserver-cert-extra-sans={{ ansible_facts['eth1']['ipv4']['address'] }}  \
-           --node-name {{ ansible_facts['nodename'] }} --pod-network-cidr=192.168.0.0/16
+  command: kubeadm init \
+           --apiserver-advertise-address={{ ansible_facts[ KUBELET_INTERFACE_NAME ]['ipv4']['address'] }} \
+           --pod-network-cidr={{ K8S_POD_NET_CIDR }}
   when: k8s_cluster_stat.stat.exists == False
 
-- name: Setup kubeconfig for vagrant user
+- name: Setup kubeconfig for {{ USERNAME }} user
   command: "{{ item }}"
   with_items:
-   - mkdir -p /home/vagrant/.kube
-   - cp /etc/kubernetes/admin.conf /home/vagrant/.kube/config
-   - chown -R vagrant:vagrant /home/vagrant/.kube
+   - mkdir -p /home/{{USERNAME}}/.kube
+   - cp /etc/kubernetes/admin.conf /home/{{ USERNAME }}/.kube/config
+   - chown -R vagrant:vagrant /home/{{ USERNAME }}/.kube
   args:
     warn: false
   changed_when: false
@@ -42,6 +41,21 @@
     dest: "./kubeconfig"
     flat: yes
 
+- name: Updating kubelet config
+  shell: sed -e '/port=0/ s/^#*/#/' -i /etc/kubernetes/manifests/kube-scheduler.yaml && \
+         sed -e '/port=0/ s/^#*/#/' -i /etc/kubernetes/manifests/kube-controller-manager.yaml
+  args:
+    warn: false
+  register: kubelet_config_stat
+
+- name: Restart kubelet
+  service:
+    name: kubelet
+    daemon_reload: yes
+    state: restarted
+    enabled: yes
+  when: kubelet_config_stat.changed == True
+
 - name: check calico pods network status
   shell: export KUBECONFIG=/etc/kubernetes/admin.conf && kubectl get pods -A | grep calico-node | wc -l
   register: calico_status
@@ -51,22 +65,18 @@
 - name: Install calico pods network
   become: false
   command: kubectl create -f https://docs.projectcalico.org/manifests/calico.yaml
-  when: calico_status.stdout == "0"
+  when: calico_status.stdout == "0" and K8S_POD_NET_CALICO
 
-# - name: check flanel pods network status
-#   shell: export KUBECONFIG=/etc/kubernetes/admin.conf && kubectl get pods -A | grep fannel | wc -l"
-#   register: flannel_status
-#   ignore_errors: yes
-#   changed_when: false
+- name: check flanel pods network status
+  shell: export KUBECONFIG=/etc/kubernetes/admin.conf && kubectl get pods -A | grep fannel | wc -l
+  register: flannel_status
+  ignore_errors: yes
+  changed_when: false
 
-# - name: print flannel_status
-#   debug:
-#     var: flannel_status.stdout
-
-# - name: Install flannel pods network
-#   become: false
-#   command: kubectl create -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-#   when: flannel_status.stdout == "0"
+- name: Install flannel pods network
+  become: false
+  command: kubectl create -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  when: flannel_status.stdout == "0" and K8S_POD_NET_FLANNEL
 
 - name: Generate join command for worker nodes
   command: kubeadm token create --print-join-command

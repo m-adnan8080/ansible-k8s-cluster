@@ -4,11 +4,11 @@
   lineinfile:
     dest: /etc/hosts
     regexp: '.*{{ item }}$'
-    line: "{% set short_name = item.split('.') %}{{ hostvars[item]['ansible_facts']['eth1']['ipv4']['address'] }} {{item}} {{ short_name[0] }}"
+    line: "{% set short_name = item.split('.') %}{{ hostvars[item]['ansible_facts'][ KUBELET_INTERFACE_NAME ]['ipv4']['address'] }} {{item}} {{ short_name[0] }}"
     state: present
   with_items:
     - "{{ groups['all'] }}"
-  when: hostvars[item]['ansible_facts']['eth1']['ipv4']['address'] is defined
+  when: hostvars[item]['ansible_facts'][ KUBELET_INTERFACE_NAME ]['ipv4']['address'] is defined
 
 - name: Install iproute on RedHat Family OS
   package:
@@ -65,14 +65,25 @@
       gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
   when: ansible_os_family == 'RedHat'
 
+- name: Install latest Docker-CE, kubernetes and tools on Debian Family
+  package:
+    name:
+      - kubeadm-{{ K8S_DEBIAN_VERSION }}
+      - kubectl-{{ K8S_DEBIAN_VERSION }}
+      - kubelet-{{ K8S_DEBIAN_VERSION }}
+      - docker-ce
+    state: present
+  when: ansible_os_family == 'Debian'
+
 - name: Install latest Docker-CE, kubernetes and tools
   package:
     name:
-      - kubeadm
-      - kubectl
-      - kubelet
+      - kubeadm-{{ K8S_REDHAT_VERSION }}
+      - kubectl-{{ K8S_REDHAT_VERSION }}
+      - kubelet-{{ K8S_REDHAT_VERSION }}
       - docker-ce
     state: present
+  when: ansible_os_family == 'RedHat'
 
 - name: Firewalld configuration on RedHat Family OS
   firewalld:
@@ -104,10 +115,10 @@
     append: yes
 
 - name: Remove swapfile from /etc/fstab
-  mount:
-    name: swap
-    fstype: swap
-    state: absent
+  shell: sed -e '/swap/ s/^#*/#/' -i /etc/fstab
+  args:
+    warn: false
+  changed_when: false
 
 - name: Disable swap
   command: swapoff -a
@@ -131,6 +142,13 @@
               }'
     mode: 0644
   register: docker_json_file_stat
+
+- name: Load br_netfilter on boot
+  blockinfile:
+    path: /etc/modules-load.d/kubernetes.conf
+    create: yes
+    block: |
+      br_netfilter
 
 - name: Enable Kubernetes birdge networking
   blockinfile:
@@ -159,7 +177,6 @@
 
 - name: Pull required docker images on kmaster(s) node
   shell: kubeadm config images pull
-  # become: true
   when: inventory_hostname in groups['master']
 
 - name: Pull required docker images on worker(s) node

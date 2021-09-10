@@ -1,0 +1,18 @@
+---
+
+# Kubernetes Version
+K8S_DEBIAN_VERSION: "1.21.4-00"
+K8S_REDHAT_VERSION: "1.21.4-0"
+
+# For multiple interface hosts specify device for Kubernetes cluster
+KUBELET_INTERFACE_NAME: "eth0"
+
+# Define Kubernetes pod network to be used by K8S pods networking
+K8S_POD_NET_CIDR: "10.244.0.0/16"
+
+# Non-Privilege user to run kubectl commands
+USERNAME: "vagrant"
+
+# Kubernetes POD networking options flannel, calico etc
+K8S_POD_NET_CALICO: false
+K8S_POD_NET_FLANNEL: true

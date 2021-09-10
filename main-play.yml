@@ -1,22 +1,21 @@
 ---
 - hosts: all
   become: true
+  vars_files:
+    - vars/variables.yaml
   roles:
     - base
 
-  handlers:
-    - name: reload-firewall
-      service:
-        name: firewalld
-        state: restarted
-
 - hosts: master
   become: true
+  vars_files:
+    - vars/variables.yaml
   roles:
     - k8s-master
 
 - hosts: workers
+  vars_files:
+    - vars/variables.yaml
   become: true
   roles:
     - k8s-nodes
-

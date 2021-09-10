@@ -1,4 +1,4 @@
-# Ansinle setup multi-node Kubernetes cluster in VMs
+# Ansible setup multi-node Kubernetes cluster in VMs
 This repo is used ansible to setup multinodes Kubernetes cluster in virtual machines or bare-metal servers. Tested on Debian / Redhat Family linux server to setup K8S cluster version 1.21.4-0.
 
 ## Tools requirement

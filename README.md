@@ -2,10 +2,10 @@
 This repo is used ansible to setup multinodes Kubernetes cluster in virtual machines or bare-metal servers. Tested on Debian / Redhat Family linux server to setup K8S cluster version 1.21.4-0.
 
 ## Tools requirement
-- Git to clone the repository
-- SSH connection / passwordless authentication between ansible host and server
+- Git
+- OpenSSH client and SSH Keys for passwordless authentication between ansible host and servers
 - Ansible 2.7 or greater
-- For local testing in Vagrant or Libvirt-QEMU (cp Vagrantfile-virtualbox Vagrantfile)
+- For local testing in Vagrant or Libvirt-QEMU
 
 ## Setup
 - Provide username amd nodes DNS/IP address information in ./hosts file.
@@ -73,7 +73,7 @@ Copy the required vagrantfile.
 cp Vagrantfile-virtualbox Vagrantfile
 ```
 
-In Vagrant file define the number of nodes, RAM, CPUs and IP address for hostonly interface.
+In Vagrant file define the number of nodes, RAM, CPUs and IP address.
 ```sh
 cluster = {
   "kmaster" => { :mgmt_name => "default", :mgmt_nw => "192.168.122.0/24", :mgmt_mac => "52:54:00:15:63:c1", :mem => 2048, :cpu => 2 },
@@ -82,6 +82,8 @@ cluster = {
 }
 
 ```
+> Note: IP Address should match the libvirt default network IP
+
 Add your own ssh public-key to `echo` command in Vagrantfile
 ```
   cat ~/.ssh/id_rsa.pub   #### copy the output and replace ssh-public-key in below line of Vagrantfile ####

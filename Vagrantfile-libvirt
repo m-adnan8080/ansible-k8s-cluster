@@ -10,7 +10,7 @@ cluster = {
 
 Vagrant.configure("2") do |config|
 
-  config.vm.provision "shell", inline: "echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKBYP8WLbAudznHNukAktWyDL1I0N5Wn8hus/re3ncI8' >> /home/vagrant/.ssh/authorized_keys"
+  config.vm.provision "shell", inline: "echo 'your_ssh_public_key' >> /home/vagrant/.ssh/authorized_keys"
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
   cluster.each_with_index do |(node, info), index|

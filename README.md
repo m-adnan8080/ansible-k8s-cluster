@@ -60,6 +60,11 @@ Play `main-play.yaml` playbook to setup Kubernetes cluster
 ansible-playbook -i hosts main-play.yaml
 ```
 After successful run of playbook, it will drop kubeconfig file to the current directory. Export that kubeconfig file and start using `kubectl` commands from your host machine.
+```sh
+export KUBECONFIG=$PWD/kubeconfig
+kubectl get nodes
+kubectl get pods -A
+```
 > Note: kubectl need to installed on local hosts in order to run commands from host machine
 
 #### Vagrant with libvirt-qemu
@@ -104,4 +109,9 @@ Play `main-play.yaml` playbook to setup Kubernetes cluster
 ansible-playbook -i hosts main-play.yaml
 ```
 After successful run of playbook, it will drop kubeconfig file to the current directory. Export that kubeconfig file and start using `kubectl` commands from your host machine.
+```sh
+export KUBECONFIG=$PWD/kubeconfig
+kubectl get nodes
+kubectl get pods -A
+```
 > Note: kubectl need to installed on local hosts in order to run commands from host machine

@@ -173,3 +173,54 @@ spec:
         - containerPort: 80
 status: {}
 
+==========================================================
+Pulling out kubelet-dynamic-config from kubernetes cluster
+==========================================================
+kubectl proxy --port=8001 &
+
+NODE_NAME="the-name-of-the-node-you-are-reconfiguring"; curl -sSL "http://localhost:8001/api/v1/nodes/${NODE_NAME}/proxy/configz" | jq '.kubeletconfig|.kind="KubeletConfiguration"|.apiVersion="kubelet.config.k8s.io/v1beta1"' > kubelet-dynamic-config
+==========================================================
+kubectl create deployment aspnetapp --image=mcr.microsoft.com/dotnet/samples:aspnetapp
+kubectl expose deployment aspnetapp --port 80
+kubectl edit service aspnetapp
+# change ClusterIP to NodePort
+
+sudo apt install siege -y
+sudo siege 192.168.42.216
+
+# To run the test for 40 seconds, use the format below default concurrency is 25:
+sudo siege -t40S http://192.168.42.216
+
+# To run the test for 30 concurrent users, use the format below:
+sudo siege -c30 http://192.168.42.216
+
+# To run the test for 40 seconds and 30 concurrent users, use the format below:
+sudo siege -t40S -c30 192.168.42.216
+
+
+=======================
+Install kube-vip
+=======================
+# Download kube-vip rbac.yaml
+curl -s https://kube-vip.io/manifests/rbac.yaml > /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
+
+# Add below lines to rules under rbac.authorization.k8s.io/v1
+
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["lease"]
+    verbs: ["list", "get", "watch", "update", "create"]
+
+# Download kube-vip docker images
+crictl pull docker.io/plndr/kube-vip:0.3.2
+
+# Create alias
+alias kube-vip="crt run --rm --net-host docker.io/plndr/kube-vip:0.3.2 vip /kube-vip"
+
+export $INTERFACE=eth0
+export $VIP=192.168.122.10
+
+kube-vip manifests deamonset --arp --inteface $INTERFACE --address $VIP --controlplane --leaderElection --taint --inCluster | tee /var/lib/rancher/k3s/server/manifests/kube-vip.yaml
+
+
+# Add below line in the kube-vip.yaml under tolerations block
+      operator: Exists

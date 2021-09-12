@@ -68,7 +68,7 @@
   when: calico_status.stdout == "0" and K8S_POD_NET_CALICO
 
 - name: check flanel pods network status
-  shell: export KUBECONFIG=/etc/kubernetes/admin.conf && kubectl get pods -A | grep fannel | wc -l
+  shell: export KUBECONFIG=/etc/kubernetes/admin.conf && kubectl get pods -A | grep flannel | wc -l
   register: flannel_status
   ignore_errors: yes
   changed_when: false

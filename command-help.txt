@@ -224,3 +224,8 @@ kube-vip manifests deamonset --arp --inteface $INTERFACE --address $VIP --contro
 
 # Add below line in the kube-vip.yaml under tolerations block
       operator: Exists
+
+# Edit server ip address to vip-ip in kubeconfig
+
+# Deploy metrics-server in k8s cluster
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml

@@ -32,14 +32,12 @@ cd ansible-k8s-cluster
 #### Vagrant with virtualbox
 In Virualbox setup two network interface used in VMs. One is vagrant default nat interface and 2nd interface is hostonly interface used for Kubernetes cluster setup. Update the hosts file for IP 192.168.100.0/24 network if using virtualbox driver. Update variables.yaml file for interface name used for kubernetes cluster. Interfaces details are as under:
 
-+--------+-------------+------------+
 | OS     | Interface   | Provider   |
-+--------+-------------+------------+
+|--------|-------------|------------|
 | CentOS | eth0        | libvirt    |
 | CentOS | eth1        | virtualbox |
 | Ubuntu | enp0s3      | libvirt    |
 | Ubuntu | enp0s8      | virtualbox |
-+--------+-------------+------------+
 
 ```sh
 cp Vagrantfile-virtualbox Vagrantfile

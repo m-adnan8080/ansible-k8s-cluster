@@ -75,7 +75,8 @@
   notify: reload firewalld
   when: ansible_os_family == 'RedHat'
 
-- meta: flush_handlers
+- name: flust handlers
+  meta: flush_handlers
 
 - name: Put SELinux in permissive mode on RedHat Family OS
   selinux:

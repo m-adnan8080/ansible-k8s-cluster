@@ -1,0 +1,46 @@
+---
+
+- name: Install dependency on Debian Family OS
+  package:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian' and CRIO == True and DOCKER == False
+
+
+
+- name: Add CRI-O repositorie on Debian Family OS
+  apt_repository:
+    repo: ppa:projectatomic/ppa
+    state: present
+  when: ansible_os_family == 'Debian' and CRIO == True and DOCKER == False
+
+- name: Add CRIO repo to Redhat Family OS
+  get_url:
+    url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ansible_distribution}}_{{ansible_distribution_major_version}}/devel:kubic:libcontainers:stable.repo
+    dest: /etc/yum.repos.d/crio1-stable.repo
+  when: ansible_os_family == 'RedHat' and CRIO == True and DOCKER == False
+
+- name: Add CRIO repo to Redhat Family OS
+  get_url:
+    url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{CRIO_VERSION}}/{{ansible_distribution}}_{{ansible_distribution_major_version}}/devel:kubic:libcontainers:stable:cri-o:{{CRIO_VERSION}}.repo
+    dest: /etc/yum.repos.d/crio2-stable.repo
+  when: ansible_os_family == 'RedHat' and CRIO == True and DOCKER == False
+
+- name: Install latest CRI-O
+  package:
+    name: cri-o
+    state: present
+  when: CRIO == True and DOCKER == False
+
+- name: Enable at boot and Start CRIO service
+  systemd:
+    name: crio
+    state: started
+    enabled: yes
+  when: CRIO == True and DOCKER == False

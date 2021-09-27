@@ -12,44 +12,21 @@
 
 - name: Install iproute on RedHat Family OS
   package:
-    name:
-      - iproute
+    name: iproute
     state: present
   when: ansible_os_family == 'RedHat'
 
-- name: Install dependency on Debian Family OS
-  package:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg-agent
-      - software-properties-common
-    state: present
-    update_cache: yes
-  when: ansible_os_family == 'Debian'
-
-- name: Add docker and kubernetes GPG keys on Debian Family OS
+- name: Add kubernetes GPG key on Debian Family OS
   apt_key:
-    url:
-      - https://download.docker.com/linux/ubuntu/gpg
-      - https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
     state: present
   when: ansible_os_family == 'Debian'
 
-- name: Add docker and kubernetes repositories on Debian Family OS
+- name: Add kubernetes repositorie on Debian Family OS
   apt_repository:
-    repo:
-      - deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
-      - deb http://apt.kubernetes.io/ kubernetes-{{ ansible_distribution_release }} main
+    repo: deb http://apt.kubernetes.io/ kubernetes-{{ ansible_distribution_release }} main
     state: present
   when: ansible_os_family == 'Debian'
-
-- name: Add Docker repo to Redhat Family OS
-  get_url:
-    url: https://download.docker.com/linux/centos/docker-ce.repo
-    dest: /etc/yum.repos.d/docer-ce.repo
-  when: ansible_os_family == 'RedHat'
 
 - name: Add kubernates repo to Redhat Family OS
   blockinfile:
@@ -65,23 +42,21 @@
       gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
   when: ansible_os_family == 'RedHat'
 
-- name: Install latest Docker-CE, kubernetes and tools on Debian Family
+- name: Install Kubernetes version {{ K8S_DEBIAN_VERSION }} and tools on Debian Family OS
   package:
     name:
       - kubeadm-{{ K8S_DEBIAN_VERSION }}
       - kubectl-{{ K8S_DEBIAN_VERSION }}
       - kubelet-{{ K8S_DEBIAN_VERSION }}
-      - docker-ce
     state: present
   when: ansible_os_family == 'Debian'
 
-- name: Install latest Docker-CE, kubernetes and tools
+- name: Install Kubernetes version {{ K8S_DEBIAN_VERSION }}  and tools on Redhat Family OS
   package:
     name:
       - kubeadm-{{ K8S_REDHAT_VERSION }}
       - kubectl-{{ K8S_REDHAT_VERSION }}
       - kubelet-{{ K8S_REDHAT_VERSION }}
-      - docker-ce
     state: present
   when: ansible_os_family == 'RedHat'
 
@@ -108,12 +83,6 @@
     state: permissive
   when: ansible_os_family == 'RedHat'
 
-- name: Add user vagrant to docker group
-  user:
-    name: vagrant
-    groups: docker
-    append: yes
-
 - name: Remove swapfile from /etc/fstab
   shell: sed -e '/swap/ s/^#*/#/' -i /etc/fstab
   args:
@@ -124,31 +93,23 @@
   command: swapoff -a
   when: ansible_swaptotal_mb > 0
 
-- name: Create /etc/docker directory
-  file:
-    path: /etc/docker
-    state: directory
-
-- name: Update the docker driver to systemd
-  copy:
-    dest: "/etc/docker/daemon.json"
-    content: '{
-                "exec-opts": ["native.cgroupdriver=systemd"],
-                "log-driver": "json-file",
-                "log-opts": {
-                  "max-size": "100m"
-                },
-                "storage-driver": "overlay2"
-              }'
-    mode: 0644
-  register: docker_json_file_stat
-
-- name: Load br_netfilter on boot
+- name: Load br_netfilter and overlay on boot
   blockinfile:
     path: /etc/modules-load.d/kubernetes.conf
     create: yes
     block: |
       br_netfilter
+      overlay
+
+- name: Load br_netfilter for current session
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Load overlay for current session
+  modprobe:
+    name: overlay
+    state: present
 
 - name: Enable Kubernetes birdge networking
   blockinfile:
@@ -157,20 +118,19 @@
     block: |
       net.bridge.bridge-nf-call-ip6tables = 1
       net.bridge.bridge-nf-call-iptables = 1
+      net.ipv4.ip_forward = 1
   register: sysctl_result
 
 - name: Apply sysctl config
   shell: sysctl --system
   when: sysctl_result.changed
 
-- name: Enable at boot and Start Docker service
-  service:
-    name: docker
-    state: started
-    enabled: yes
+- name: Systemd deamon-reload
+  systemd:
+    daemon_reload: yes
 
 - name: Enable at boot and Start Kubernetes service
-  service:
+  systemd:
     name: kubelet
     state: started
     enabled: yes
@@ -184,8 +144,8 @@
     if docker images | grep '"{{ item }}"' | wc -l; then docker pull "{{ item }}"; fi
   with_items:
     - k8s.gcr.io/kube-proxy:v1.22.1
-    - calico/node:v3.20.0
-    - calico/pod2daemon-flexvol:v3.20.0
-    - calico/cni:v3.20.0
+    # - calico/node:v3.20.0
+    # - calico/pod2daemon-flexvol:v3.20.0
+    # - calico/cni:v3.20.0
     - k8s.gcr.io/pause:3.5
-  when: inventory_hostname in groups['workers']
+  when: inventory_hostname in groups['workers'] and DOCKER == true and CRIO == False

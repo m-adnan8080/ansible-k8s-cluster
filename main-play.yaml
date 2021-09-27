@@ -4,6 +4,8 @@
   vars_files:
     - vars/variables.yaml
   roles:
+    - docker
+    - crio
     - base
 
 - hosts: master

@@ -14,5 +14,13 @@ K8S_POD_NET_CIDR: "10.244.0.0/16"
 USERNAME: "vagrant"
 
 # Kubernetes POD networking options flannel, calico etc
-K8S_POD_NET_CALICO: false
-K8S_POD_NET_FLANNEL: true
+K8S_POD_NET_CALICO: true
+K8S_POD_NET_FLANNEL: false
+
+# Use docker engine to run kubernets containers
+DOCKER: false
+
+# CRIO Version should match kubernetes version
+CRIO_VERSION: "1.21"
+# Use cri-o engine to run kubernets containers
+CRIO: true

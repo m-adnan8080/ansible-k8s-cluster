@@ -1,0 +1,79 @@
+---
+
+- name: Install dependency on Debian Family OS
+  package:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Add docker GPG key on Debian Family OS
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  when: ansible_os_family == 'Debian' and DOCKER == True and CRIO == False
+
+
+- name: Add docker repositorie on Debian Family OS
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+  when: ansible_os_family == 'Debian' and DOCKER == True and CRIO == False
+
+- name: Add Docker repo to Redhat Family OS
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docer-ce.repo
+  when: ansible_os_family == 'RedHat' and DOCKER == True and CRIO == False
+
+- name: Install latest Docker-CE on Debian Family
+  package:
+    name: docker-ce
+    state: present
+  when: ansible_os_family == 'Debian' and DOCKER == True and CRIO == False
+
+- name: Install latest Docker-CE on Redhat Family OS
+  package:
+    name: docker-ce
+    state: present
+  when: ansible_os_family == 'RedHat' and DOCKER == True and CRIO == False
+
+- name: Create /etc/docker directory
+  file:
+    path: "/etc/docker"
+    state: directory
+  when: DOCKER == True and CRIO == False
+
+- name: Update the docker driver to systemd
+  copy:
+    dest: "/etc/docker/daemon.json"
+    content: '{
+                "exec-opts": ["native.cgroupdriver=systemd"],
+                "log-driver": "json-file",
+                "log-opts": {
+                  "max-size": "100m"
+                },
+                "storage-driver": "overlay2"
+              }'
+    mode: 0644
+  register: docker_json_file_stat
+  when: DOCKER == True and CRIO == False
+
+- name: Add user vagrant to docker group
+  user:
+    name: vagrant
+    groups: ["docker"]
+    append: yes
+  when: DOCKER == True and CRIO == False
+
+- name: Enable at boot and Start Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+  when: DOCKER == True and CRIO == False

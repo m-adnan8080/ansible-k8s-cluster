@@ -5,3 +5,5 @@ join-master-command
 kubeconfig
 Vagrantfile*
 test.yaml
+calico.yaml
+kubelet-dynamic-config

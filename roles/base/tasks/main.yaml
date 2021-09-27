@@ -24,7 +24,7 @@
 
 - name: Add kubernetes repositorie on Debian Family OS
   apt_repository:
-    repo: deb http://apt.kubernetes.io/ kubernetes-{{ ansible_distribution_release }} main
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
     state: present
   when: ansible_os_family == 'Debian'
 
@@ -45,9 +45,9 @@
 - name: Install Kubernetes version {{ K8S_DEBIAN_VERSION }} and tools on Debian Family OS
   package:
     name:
-      - kubeadm-{{ K8S_DEBIAN_VERSION }}
-      - kubectl-{{ K8S_DEBIAN_VERSION }}
-      - kubelet-{{ K8S_DEBIAN_VERSION }}
+      - kubeadm={{ K8S_DEBIAN_VERSION }}
+      - kubectl={{ K8S_DEBIAN_VERSION }}
+      - kubelet={{ K8S_DEBIAN_VERSION }}
     state: present
   when: ansible_os_family == 'Debian'
 
@@ -145,8 +145,5 @@
     if docker images | grep '"{{ item }}"' | wc -l; then docker pull "{{ item }}"; fi
   with_items:
     - k8s.gcr.io/kube-proxy:v1.22.1
-    # - calico/node:v3.20.0
-    # - calico/pod2daemon-flexvol:v3.20.0
-    # - calico/cni:v3.20.0
     - k8s.gcr.io/pause:3.5
   when: inventory_hostname in groups['workers'] and DOCKER == true and CRIO == False

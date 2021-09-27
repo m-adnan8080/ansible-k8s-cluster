@@ -12,13 +12,20 @@
     update_cache: yes
   when: ansible_os_family == 'Debian' and CRIO == True and DOCKER == False
 
-
-
-- name: Add CRI-O repositorie on Debian Family OS
-  apt_repository:
-    repo: ppa:projectatomic/ppa
+- name: Add CRIO GPG key1 on Debian Family OS
+  apt_key:
+    url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/x{{ansible_distribution}}_{{ansible_distribution_version}}/Release.key
     state: present
   when: ansible_os_family == 'Debian' and CRIO == True and DOCKER == False
+
+- name: Add CRIO repo to Debian Family OS
+  blockinfile:
+    path: "/etc/apt/sources.list.d/crio-stable.list"
+    create: yes
+    block: |
+      deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/x{{ansible_distribution}}_{{ansible_distribution_version}}/ /
+      deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{CRIO_VERSION}}/x{{ansible_distribution}}_{{ansible_distribution_version}}/ /
+  when: CRIO == True and DOCKER == False
 
 - name: Add CRIO repo to Redhat Family OS
   get_url:
@@ -34,8 +41,11 @@
 
 - name: Install latest CRI-O
   package:
-    name: cri-o
+    name:
+      - cri-o
+      - cri-o-runc
     state: present
+    update_cache: yes
   when: CRIO == True and DOCKER == False
 
 - name: Enable at boot and Start CRIO service

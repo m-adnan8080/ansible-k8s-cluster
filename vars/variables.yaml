@@ -4,7 +4,16 @@
 K8S_DEBIAN_VERSION: "1.21.4-00"
 K8S_REDHAT_VERSION: "1.21.4-0"
 
-# For multiple interface hosts specify device for Kubernetes cluster
+# Specify network interface device for Kubernetes cluster
+# Interfaces details are as under
+# +--------+-------------+------------+
+# | OS     | Interface   | Provider   |
+# +--------+-------------+------------+
+# | CentOS | eth0        | libvirt    |
+# | CentOS | eth1        | virtualbox |
+# | Ubuntu | enp0s3      | libvirt    |
+# | Ubuntu | enp0s8      | virtualbox |
+# +--------+-------------+------------+
 KUBELET_INTERFACE_NAME: "eth0"
 
 # Define Kubernetes pod network to be used by K8S pods networking

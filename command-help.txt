@@ -136,7 +136,7 @@ openssl pkcs12 -export -clcerts -inkey kubecfg.key -in kubecfg.crt -out kubecfg.
 http://server-ip:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
 
 # Create secret for treescale.com docker repo
-kubectl create secret docker-registry regcred --docker-server='https://repo.treescale.com' --docker-username='adnan80' --docker-password='ea1efc7a03d1443f9a1f4d15897eca6d' --docker-email='m.adnan80@gmail.com'
+kubectl create secret docker-registry treescale-reg-cred --docker-server='https://repo.treescale.com' --docker-username='adnan80' --docker-password='ea1efc7a03d1443f9a1f4d15897eca6d' --docker-email='m.adnan80@gmail.com'
 
 # or using docker config.json file
 kubectl create secret docker-registry regcred --from-file=".dockerconfigjson=/home/khanaadn/.docker/config.json"

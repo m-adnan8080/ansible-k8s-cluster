@@ -1,7 +1,10 @@
 ---
 
 - name: Copy the join command to server location
-  copy: src=join-worker-command dest=/tmp/join-worker-command.sh mode=0777
+  copy:
+    src: join-worker-command
+    dest: /tmp/join-worker-command.sh
+    mode: '0777'
 
 - name: Check worker already joined cluster
   stat:

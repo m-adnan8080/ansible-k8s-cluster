@@ -10,13 +10,13 @@
       - software-properties-common
     state: present
     update_cache: yes
-  when: ansible_os_family == 'Debian' and CRIO == True and DOCKER == False
+  when: ansible_os_family == 'Debian'
 
 - name: Add CRIO GPG key1 on Debian Family OS
   apt_key:
     url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/x{{ansible_distribution}}_{{ansible_distribution_version}}/Release.key
     state: present
-  when: ansible_os_family == 'Debian' and CRIO == True and DOCKER == False
+  when: ansible_os_family == 'Debian'
 
 - name: Add CRIO repo to Debian Family OS
   blockinfile:
@@ -25,19 +25,19 @@
     block: |
       deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/x{{ansible_distribution}}_{{ansible_distribution_version}}/ /
       deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{CRIO_VERSION}}/x{{ansible_distribution}}_{{ansible_distribution_version}}/ /
-  when: CRIO == True and DOCKER == False
+  when: ansible_os_family == 'Debian'
 
 - name: Add CRIO repo to Redhat Family OS
   get_url:
     url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ansible_distribution}}_{{ansible_distribution_major_version}}/devel:kubic:libcontainers:stable.repo
     dest: /etc/yum.repos.d/crio1-stable.repo
-  when: ansible_os_family == 'RedHat' and CRIO == True and DOCKER == False
+  when: ansible_os_family == 'RedHat'
 
 - name: Add CRIO repo to Redhat Family OS
   get_url:
     url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{CRIO_VERSION}}/{{ansible_distribution}}_{{ansible_distribution_major_version}}/devel:kubic:libcontainers:stable:cri-o:{{CRIO_VERSION}}.repo
     dest: /etc/yum.repos.d/crio2-stable.repo
-  when: ansible_os_family == 'RedHat' and CRIO == True and DOCKER == False
+  when: ansible_os_family == 'RedHat'
 
 - name: Install latest CRI-O
   package:
@@ -46,11 +46,17 @@
       - cri-o-runc
     state: present
     update_cache: yes
-  when: CRIO == True and DOCKER == False
+  when: ansible_os_family == 'Debian'
+
+- name: Install latest CRI-O
+  package:
+    name: cri-o
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'RedHat'
 
 - name: Enable at boot and Start CRIO service
   systemd:
     name: crio
     state: started
     enabled: yes
-  when: CRIO == True and DOCKER == False

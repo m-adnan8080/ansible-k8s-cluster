@@ -4,8 +4,8 @@
   vars_files:
     - vars/variables.yaml
   roles:
-    - docker
-    - crio
+    - {role: docker, when: CRIO == False and DOCKER == True}
+    - {role: crio, when: CRIO == True and DOCKER == False}
     - base
 
 - hosts: master

@@ -64,6 +64,28 @@ kubectl apply -f service.yaml
 kubectl delete -f deployment.yaml
 kubectl delete -f service.yaml
 
+# Fix DNS resolution in Kubernetes Cluster
+==========================================
+kubectl create -f https://k8s.io/examples/admin/dns/busybox.yaml
+kubectl get pods busybox
+kubectl exec -ti busybox -- nslookup kubernetes.default
+kubectl exec -ti busybox -- nslookup google.com
+
+# if facing dns issue run on both master and worker nodes
+iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+
+# if problem still persists then recreate the dns pods
+kubectl get pod -n kube-system  -l k8s-app=kube-dns
+kubectl delete pod -n kube-system  -l k8s-app=kube-dns
+
+# Verify dns working
+kubectl exec -ti busybox -- nslookup google.com
+
+# if issue solved then remove busybox
+kubectl delete -f https://k8s.io/examples/admin/dns/busybox.yaml
+
+# Deploy Kubernetes dashbaord
+=============================
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml --dry-run=client -o yaml > dashboard-deploy.yaml
 
 kubectl apply -f dashboard-deploy.yaml
@@ -178,7 +200,9 @@ Pulling out kubelet-dynamic-config from kubernetes cluster
 ==========================================================
 kubectl proxy --port=8001 &
 
-NODE_NAME="the-name-of-the-node-you-are-reconfiguring"; curl -sSL "http://localhost:8001/api/v1/nodes/${NODE_NAME}/proxy/configz" | jq '.kubeletconfig|.kind="KubeletConfiguration"|.apiVersion="kubelet.config.k8s.io/v1beta1"' > kubelet-dynamic-config
+NODE_NAME="the-name-of-the-node-you-are-reconfiguring"
+curl -sSL "http://localhost:8001/api/v1/nodes/${NODE_NAME}/proxy/configz" | jq '.kubeletconfig|.kind="KubeletConfiguration"|.apiVersion="kubelet.config.k8s.io/v1beta1"' > kubelet-dynamic-config
+
 ==========================================================
 kubectl create deployment aspnetapp --image=mcr.microsoft.com/dotnet/samples:aspnetapp
 kubectl expose deployment aspnetapp --port 80

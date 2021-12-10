@@ -57,9 +57,9 @@ kubectl get service nginx-service
 
 # To veiw or save running deployment or service in yaml format
 kubectl get deploy <deployment-name> -o yaml
-kubectl get service <deployment-name> -o yaml
+kubectl get service <service-name> -o yaml
 kubectl get deploy <deployment-name> -o yaml > deployment.yaml
-kubectl get service <deployment-name> -o yaml > service.yaml
+kubectl get service <service-name> -o yaml > service.yaml
 
 # Remove deployment or service
 kubectl delete deployment [deployment-name]

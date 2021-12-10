@@ -1,3 +1,12 @@
+# View kubeconfig
+kubectl config view
+
+# View the current context for kubectl
+kubectl config current-context
+
+# Change context
+kubectl config use-context cluster-1
+
 # Get nodes status
 kubectl get nodes
 

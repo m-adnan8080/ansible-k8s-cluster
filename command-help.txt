@@ -233,6 +233,7 @@ sudo siege -t40S -c30 192.168.42.216
 
 =======================
 Install kube-vip
+(Kubernetes Control Plane Virtual IP and Load-Balancer)
 =======================
 # Download kube-vip rbac.yaml
 curl -s https://kube-vip.io/manifests/rbac.yaml > /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
@@ -245,9 +246,11 @@ curl -s https://kube-vip.io/manifests/rbac.yaml > /var/lib/rancher/k3s/server/ma
 
 # Download kube-vip docker images
 crictl pull docker.io/plndr/kube-vip:0.3.2
+#docker pull docker.io/plndr/kube-vip:0.3.2
 
 # Create alias
 alias kube-vip="crt run --rm --net-host docker.io/plndr/kube-vip:0.3.2 vip /kube-vip"
+#alias kube-vip="docker run --rm --net-host docker.io/plndr/kube-vip:0.3.2 vip /kube-vip"
 
 export $INTERFACE=eth0
 export $VIP=192.168.122.10

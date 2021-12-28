@@ -13,6 +13,12 @@ kubectl get nodes
 # Label nodes
 kubectl label node worker1 node-role.kubernetes.io/worker=worker
 
+# Taint a node and remove taint from node
+kubectl taint node <node_name> key=value:taint-effect
+kubectl taint node node-01 app=frontend:[NoSchedule|NoExecute|PreferNoSchedule]
+kubectl taint node node-01 app=frontend:NoSchedule
+kubectl taint node node-01 app=frontend:NoSchedule-
+
 # Get pod status
 kubectl get pod
 
